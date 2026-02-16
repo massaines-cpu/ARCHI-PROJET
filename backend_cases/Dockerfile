@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY models.py .
 COPY test_db.py .
+COPY .env .
 COPY data ./data
 
 EXPOSE 8000
