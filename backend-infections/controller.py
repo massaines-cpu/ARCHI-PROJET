@@ -18,11 +18,6 @@ class Infection(Base):
     contagion_days = Column(Integer, nullable=False)
     contagion_level = Column(Float, nullable=False)
 
-
-# OK for POC (creates table if not exists)
-Base.metadata.create_all(bind=engine)
-
-
 def create_infection(payload: InfectionCreate):
     db: Session = SessionLocal()
     try:

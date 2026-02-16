@@ -5,10 +5,10 @@ services:
     image: mysql:8.0
     container_name: archi_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ARCHI
-      MYSQL_USER: promo2027
-      MYSQL_PASSWORD: promo2026
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -29,10 +29,10 @@ services:
       - "8000:8000"
     environment:
       DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: promo2027
-      DB_PASSWORD: promo2026
-      DB_NAME: ARCHI
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
     depends_on:
       db:
         condition: service_healthy
