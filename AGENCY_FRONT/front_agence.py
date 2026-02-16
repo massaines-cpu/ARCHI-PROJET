@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-import datetime
+from datetime import date
 url = ''
 def get_infections():
     pass
@@ -35,31 +35,57 @@ st.table(df)
 #ajouter
 with st.form("ajout_infection"):
     nouvelle_infection = st.text_input("nom de l'infection")
+    date_infection = st.text_input("date d'infection (AAAA--MM--JJ)", str(date.today()))
     niveau = st.selectbox("niveau de contagion", ["low", "medium", "high", "critical"])
     submit_add = st.form_submit_button("ajouter l'infection")
 
     if submit_add and nouvelle_infection:
         nouvelle_donnees = {
             "name": nouvelle_infection,
-            "date_infection": str(datetime.today()), #"%Y-%m-%d"
+            "date_infection": str(date.today()), #"%Y-%m-%d"
             "level": niveau
         }
 
         st.session_state.infections.append(nouvelle_donnees)
+        st.rerun()
 
-#delete
-Infection = st.selectbox(
-    "Selectionner une infection à supprimer",
-    st.session_state.infections,
-    key="infection_id")
+#delete modifier
 
-if st.button("Effacer une infection"):
+infection_existante = [infection["name"] for infection in st.session_state.infections]
+infection_selectionnee = st.selectbox("quelle infection modifier ?", infection_existante)
 
-    reponse = requests.delete(url, json=Infection)
-    if reponse.status_code == 200:
-        pass
+infos_actuelles = {}
+for infection in st.session_state.infections:
+    if infection["name"] == infection_selectionnee:
+        infos_actuelles = infection
 
+with st.form("form_modification"):
+    st.write(f"modification de : {infection_selectionnee}")
+    nouveau_nom_infection = st.text_input("nom", infos_actuelles["name"])
+    nouvelle_date = st.text_input("date (AAAA--MM--JJ)",infos_actuelles["date_infection"])
+    nouveau_niveau = st.selectbox("niveau", ["low", "medium", "high"], 0)
 
+    valider = st.form_submit_button("sauvegarder les modifications")
+    if valider:
+        for infection in st.session_state.infections:
+            if infection["name"] == infection_selectionnee:
+                infection["name"] = nouveau_nom_infection
+                infection["date_infection"] = nouvelle_date
+                infection["level"] = nouveau_niveau
+
+        st.success("l'infection a été mise à jour !")
+        st.rerun()
+
+    if st.form_submit_button("supprimer l'infection"):
+        nouvelle_liste = []
+        for infection in st.session_state.infections:
+            if infection["name"] != infection_selectionnee:
+                nouvelle_liste.append(infection)
+
+        st.session_state.infections = nouvelle_liste
+
+        st.warning("L'infection a été supprimée !")
+        st.rerun()
 
 #map
 data = pd.DataFrame([[1, 43.6033755861274, 1.4397677963289235, 'grippe', '10/05/2000'],
