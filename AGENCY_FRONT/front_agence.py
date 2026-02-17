@@ -6,7 +6,7 @@ url = ''
 def get_infections():
     pass
 
-st.title('Inscription de nouvelles infections')
+st.title('inscription de nouvelles infections')
 
 if "infections" not in st.session_state:
     # st.session_state.infections = get_infections("infections")
@@ -15,20 +15,7 @@ if "infections" not in st.session_state:
         {"name": "cynisme", "date_infection": "2024-01-05", "level": "medium"},
         {"name": "sarcasme", "date_infection": "2024-01-10", "level": "low"}
     ]
-if "dateinfection" not in st.session_state:
-    # st.session_state.infections = get_infections("infections")
-    # st.session_state.dateinfection =
-    pass
 
-if "contamination" not in st.session_state:
-    # st.session_state.infections = get_infections("infections")
-    # st.session_state.contamination =
-    pass
-
-if "dateincubation" not in st.session_state:
-    # st.session_state.infections = get_infections("infections")
-    # st.session_state.dateincubation =
-    pass
 df = pd.DataFrame(st.session_state.infections)
 st.table(df)
 
@@ -84,24 +71,36 @@ with st.form("form_modification"):
 
         st.session_state.infections = nouvelle_liste
 
-        st.warning("L'infection a été supprimée !")
+        st.warning("l'infection a été supprimée !")
         st.rerun()
 
 #map
-data = pd.DataFrame([[1, 43.6033755861274, 1.4397677963289235, 'grippe', '10/05/2000'],
-                   [2, 43.6, 1.50, 'rhume', '23/01/1970'],
-                   [3, 43.6, 1.45, 'rhume', '02/01/1980']],
-                  columns=["id", "lat", "lon", "infection", "contamination_date"])
+data = pd.DataFrame([
+    [1, 43.6033, 1.4397, 'grippe', '10/05/2000'],
+    [2, 43.6000, 1.5000, 'rhume', '23/01/1970'],
+    [3, 43.5800, 1.4500, 'rhume', '02/01/1980']
+], columns=["id", "lat", "lon", "infection", "contamination_date"])
 
 couleurs = {
-    "grippe": "#ff0000",
-    "rhume": "#00ff00"
+    "grippe": "#FF0000",
+    "rhume": "#00FF00"
 }
-
 df = pd.DataFrame(data)
 
 df["color"] = df["infection"].apply(lambda i: couleurs[i])
 st.map(df, color='color')
+
+# data = pd.DataFrame([[1, 43.6033755861274, 1.4397677963289235, 'grippe', '10/05/2000'],
+#                    [2, 43.6, 1.50, 'rhume', '23/01/1970'],
+#                    [3, 43.6, 1.45, 'rhume', '02/01/1980']],
+#                   columns=["id", "lat", "lon", "infection", "contamination_date"])
+#
+# couleurs = {
+#     "grippe": "#ff0000",
+#     "rhume": "#00ff00"
+# }
+#
+
 
 #retry/time out
 
@@ -135,3 +134,18 @@ st.map(df, color='color')
     # if reponse.status_code == 200:
     #     pass
         # st.success("Ami.e ajouté.e dans la BDD")
+
+# if "dateinfection" not in st.session_state:
+#     # st.session_state.infections = get_infections("infections")
+#     # st.session_state.dateinfection =
+#     pass
+#
+# if "contamination" not in st.session_state:
+#     # st.session_state.infections = get_infections("infections")
+#     # st.session_state.contamination =
+#     pass
+#
+# if "dateincubation" not in st.session_state:
+#     # st.session_state.infections = get_infections("infections")
+#     # st.session_state.dateincubation =
+#     pass
