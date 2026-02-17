@@ -2,9 +2,44 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import date
-url = ''
+
+BASE_URL = "http://127.0.0.1:8000/infection"
+
 def get_infections():
-    pass
+    try:
+        res = requests.get(BASE_URL)
+        if res.status_code == 200:
+            return res.json()
+        return []
+    except Exception as e:
+        st.error(f"erreur connexion API (get): {e}")
+        return []
+
+def post_infection(data):
+    try:
+        res = requests.post(BASE_URL, json=data)
+        if res.status_code == 201:
+            st.success("infection envoyée à API")
+        elif res.status_code == 409:
+            st.error("ce nom d'infection existe déjà.")
+    except Exception as e:
+        st.error(f"erreur API (post): {e}")
+
+def delete_infection(id_infection):
+    try:
+        res = requests.delete(f"{BASE_URL}/{id_infection}")
+        if res.status_code == 204:
+            st.warning("infection supprimée")
+    except Exception as e:
+        st.error(f"erreur API (delete): {e}")
+
+def update_infection(id_infection, data):
+    try:
+        res = requests.put(f"{BASE_URL}/{id_infection}", json=data)
+        if res.status_code == 200:
+            st.success("mise à jour réussie")
+    except Exception as e:
+        st.error(f"erreur API (put): {e}")
 
 st.title('inscription de nouvelles infections')
 
