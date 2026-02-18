@@ -12,7 +12,7 @@ class Infection(Base):
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    incubation_day = Column(Integer, nullable=False)
+    incubation_days = Column(Integer, nullable=False)
     detection_date = Column(Date, nullable=False)
     contagion_days = Column(Integer, nullable=False)
     contagion_level = Column(Float, nullable=False)
@@ -23,7 +23,7 @@ def create_infection(payload: InfectionCreate):
         infection = Infection(
             id=str(uuid.uuid4()),
             name=payload.name,
-            incubation_day=payload.incubation_day,
+            incubation_days=payload.incubation_days,
             detection_date=payload.detection_date,
             contagion_days=payload.contagion_days,
             contagion_level=payload.contagion_level,

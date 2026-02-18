@@ -20,5 +20,6 @@ def parse_multipoint(raw) -> list:
     if raw is None:
         return None
     # raw est une string du style "MULTIPOINT((2.29 48.85),(2.37 48.84))"
+    # [[2.29, 48.85], [2...
     matches = re.findall(r'\(([-\d.]+)\s+([-\d.]+)\)', raw)
     return [[float(lon), float(lat)] for lon, lat in matches]
