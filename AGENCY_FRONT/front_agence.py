@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 from datetime import date
 
-BASE_URL = "http://127.0.0.1:8000/infection"
+BASE_URL = "http://127.0.0.1:8002/infection"
 
 def get_infections():
     try:
@@ -43,71 +43,71 @@ def update_infection(id_infection, data):
 
 st.title('inscription de nouvelles infections')
 
-if "infections" not in st.session_state:
-    # st.session_state.infections = get_infections("infections")
-    st.session_state.infections = [
-        {"name": "aigreur", "date_infection": "2024-01-01", "level": "high"},
-        {"name": "cynisme", "date_infection": "2024-01-05", "level": "medium"},
-        {"name": "sarcasme", "date_infection": "2024-01-10", "level": "low"}
-    ]
-
-df = pd.DataFrame(st.session_state.infections)
-st.table(df)
+donnees_infections = get_infections()
+st.write(donnees_infections)
+if donnees_infections:
+    df = pd.DataFrame(donnees_infections)
+    st.table(df)
 
 #ajouter
 with st.form("ajout_infection"):
-    nouvelle_infection = st.text_input("nom de l'infection")
-    date_infection = st.text_input("date d'infection (AAAA--MM--JJ)", str(date.today()))
-    niveau = st.selectbox("niveau de contagion", ["low", "medium", "high", "critical"])
-    submit_add = st.form_submit_button("ajouter l'infection")
+    name = st.text_input("nom de l'infection")
+    incubation = st.number_input("jours d'incubation", min_value=0, max_value=365, value=5)
+    detection = st.date_input("date de détection", value=date.today())
+    contagion = st.number_input("jours de contagion", min_value=0, max_value=365, value=10)
 
-    if submit_add and nouvelle_infection:
-        nouvelle_donnees = {
-            "name": nouvelle_infection,
-            "date_infection": str(date.today()), #"%Y-%m-%d"
-            "level": niveau
+    level = st.number_input('niveau de contagion (0.0 à 1.0)', min_value=0.0, max_value=1.0, step=0.1, value=0.5)
+
+    submit_add = st.form_submit_button("Ajouter l'infection")
+
+    if submit_add and name:
+        payload = {
+            "name": name,
+            "incubation_day": int(incubation),
+            "detection_date": str(detection),
+            "contagion_days": int(contagion),
+            "contagion_level": float(level)
         }
-
-        st.session_state.infections.append(nouvelle_donnees)
+        post_infection(payload)
         st.rerun()
 
 #delete modifier
+infections_bdd = get_infections()
+if infections_bdd:
+    infection_existante = [infection["name"] for infection in infections_bdd]
+    infection_selectionnee = st.selectbox("quelle infection modifier ?", infection_existante)
 
-infection_existante = [infection["name"] for infection in st.session_state.infections]
-infection_selectionnee = st.selectbox("quelle infection modifier ?", infection_existante)
+    infections_actuelles = {}
+    for infection in infections_bdd:
+        if infection["name"] == infection_selectionnee:
+            infections_actuelles = infection
 
-infos_actuelles = {}
-for infection in st.session_state.infections:
-    if infection["name"] == infection_selectionnee:
-        infos_actuelles = infection
+    with st.form("form_modification"):
+        st.write(f"modification de : {infection_selectionnee}")
 
-with st.form("form_modification"):
-    st.write(f"modification de : {infection_selectionnee}")
-    nouveau_nom_infection = st.text_input("nom", infos_actuelles["name"])
-    nouvelle_date = st.text_input("date (AAAA--MM--JJ)",infos_actuelles["date_infection"])
-    nouveau_niveau = st.selectbox("niveau", ["low", "medium", "high"], 0)
+        nouveau_nom = st.text_input("nom", infections_actuelles["name"])
+        nouveau_niveau = st.number_input('niveau', min_value=0.0, max_value=1.0, value=float(infections_actuelles["contagion_level"]))
+        nouveau_incubation = st.number_input("jours d'incubation", value=int(infections_actuelles["incubation_days"]))
+        nouvelle_detection = st.date_input("date de détection", value=date.today())
+        nouveau_contagion = st.number_input("jours de contagion", value=int(infections_actuelles["contagion_days"]))
+        valider = st.form_submit_button("sauvegarder les modifications")
+        supprimer = st.form_submit_button("supprimer l'infection")
 
-    valider = st.form_submit_button("sauvegarder les modifications")
-    if valider:
-        for infection in st.session_state.infections:
-            if infection["name"] == infection_selectionnee:
-                infection["name"] = nouveau_nom_infection
-                infection["date_infection"] = nouvelle_date
-                infection["level"] = nouveau_niveau
+        if valider:
+            payload_update = {
+                "name": nouveau_nom,
+                "incubation_day": int(nouveau_incubation),
+                "detection_date": str(nouvelle_detection),
+                "contagion_days": int(nouveau_contagion),
+                "contagion_level": float(nouveau_niveau)
+            }
+            update_infection(infections_actuelles["id"], payload_update)
+            st.success("l'infection a été mise à jour !")
+            st.rerun()
 
-        st.success("l'infection a été mise à jour !")
-        st.rerun()
-
-    if st.form_submit_button("supprimer l'infection"):
-        nouvelle_liste = []
-        for infection in st.session_state.infections:
-            if infection["name"] != infection_selectionnee:
-                nouvelle_liste.append(infection)
-
-        st.session_state.infections = nouvelle_liste
-
-        st.warning("l'infection a été supprimée !")
-        st.rerun()
+        if supprimer:
+            delete_infection(inf_actuelle["id"])
+            st.rerun()
 
 #map
 data = pd.DataFrame([
@@ -125,62 +125,3 @@ df = pd.DataFrame(data)
 df["color"] = df["infection"].apply(lambda i: couleurs[i])
 st.map(df, color='color')
 
-# data = pd.DataFrame([[1, 43.6033755861274, 1.4397677963289235, 'grippe', '10/05/2000'],
-#                    [2, 43.6, 1.50, 'rhume', '23/01/1970'],
-#                    [3, 43.6, 1.45, 'rhume', '02/01/1980']],
-#                   columns=["id", "lat", "lon", "infection", "contamination_date"])
-#
-# couleurs = {
-#     "grippe": "#ff0000",
-#     "rhume": "#00ff00"
-# }
-#
-
-
-#retry/time out
-
-
-# nouvelle_infection = st.text_input("Ajouter une nouvelle infection")
-# if st.button("Ajouter l'infection"):
-#     if nouvelle_infection not in st.session_state.infections:
-#         st.session_state.infection.append(nouvelle_infection)
-#         st.success("Infection ajoutée : " + nouvelle_infection)
-#         reponse = requests.post(url, json=nouvelle_infection)
-#
-#         st.rerun()
-
-# nom = st.session_state.infections
-# date_infection = ''
-# periode = ''
-# contagiousness = ''
-# date_incubation = ''
-# lignes = key='id_infections'
-#
-# #liste
-# mydict = {"name":nom,"date_infection":date_infection, "detection_period":periode,"contagiousness_level":contagiousness, "date_incubation":date_incubation}
-# mydata = pd.DataFrame(mydict)
-# st.table(mydata)
-
-#mettre à jour
-# if st.button("Mettre à jour"):
-    # replace infection choisi par une nouvelle
-
-    # reponse = requests.put(url, json=Infection)
-    # if reponse.status_code == 200:
-    #     pass
-        # st.success("Ami.e ajouté.e dans la BDD")
-
-# if "dateinfection" not in st.session_state:
-#     # st.session_state.infections = get_infections("infections")
-#     # st.session_state.dateinfection =
-#     pass
-#
-# if "contamination" not in st.session_state:
-#     # st.session_state.infections = get_infections("infections")
-#     # st.session_state.contamination =
-#     pass
-#
-# if "dateincubation" not in st.session_state:
-#     # st.session_state.infections = get_infections("infections")
-#     # st.session_state.dateincubation =
-#     pass
