@@ -9,6 +9,7 @@ COPY main.py .
 COPY models.py .
 COPY test_db.py .
 COPY .env .
+COPY geoap.py .
 COPY data ./data
 
 EXPOSE 8000
