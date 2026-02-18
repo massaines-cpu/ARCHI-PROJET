@@ -13,7 +13,7 @@ class Infection(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     incubation_days = Column(Integer, nullable=False)
-    detection_date = Column(Date, nullable=False)
+    detection_days = Column(Integer, nullable=False)
     contagion_days = Column(Integer, nullable=False)
     contagion_level = Column(Float, nullable=False)
 
@@ -24,7 +24,7 @@ def create_infection(payload: InfectionCreate):
             id=str(uuid.uuid4()),
             name=payload.name,
             incubation_days=payload.incubation_days,
-            detection_date=payload.detection_date,
+            detection_days=payload.detection_days,
             contagion_days=payload.contagion_days,
             contagion_level=payload.contagion_level,
         )
@@ -41,7 +41,6 @@ def create_infection(payload: InfectionCreate):
     finally:
         db.close()
 
-
 def list_infections(q: str | None = None, limit: int = 50, offset: int = 0):
     db: Session = SessionLocal()
     try:
@@ -51,7 +50,6 @@ def list_infections(q: str | None = None, limit: int = 50, offset: int = 0):
         return query.offset(offset).limit(limit).all()
     finally:
         db.close()
-
 
 def get_infection(infection_id: str):
     db: Session = SessionLocal()

@@ -22,7 +22,9 @@ def create(payload: InfectionCreate):
 
 @router.get("", response_model=list[InfectionOut])
 def list_all(q: str | None = None, limit: int = 50, offset: int = 0):
-    return list_infections(q=q, limit=limit, offset=offset)
+    infections = list_infections(q=q, limit=limit, offset=offset) #ajout
+    return [InfectionOut.from_orm(i) for i in infections] #ajout
+    # return list_infections(q=q, limit=limit, offset=offset)
 
 
 @router.get("/{infection_id}", response_model=InfectionOut)
