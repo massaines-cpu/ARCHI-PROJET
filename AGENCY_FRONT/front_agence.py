@@ -44,7 +44,7 @@ def update_infection(id_infection, data):
 st.title('inscription de nouvelles infections')
 
 donnees_infections = get_infections()
-st.write(donnees_infections)
+# st.write(donnees_infections)
 if donnees_infections:
     df = pd.DataFrame(donnees_infections)
     st.table(df)
@@ -58,7 +58,7 @@ with st.form("ajout_infection"):
 
     level = st.number_input('niveau de contagion (0.0 à 1.0)', min_value=0.0, max_value=1.0, step=0.1, value=0.5)
 
-    submit_add = st.form_submit_button("Ajouter l'infection")
+    submit_add = st.form_submit_button("ajouter l'infection")
 
     if submit_add and name:
         payload = {
@@ -106,7 +106,7 @@ if infections_bdd:
             st.rerun()
 
         if supprimer:
-            delete_infection(inf_actuelle["id"])
+            delete_infection(infections_actuelles["id"])
             st.rerun()
 
 #map
