@@ -1,6 +1,5 @@
 # controller.py
-import uuid
-from sqlalchemy import Column, String, Integer, Float
+from sqlalchemy import Column, String, Integer, Float, Date
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -13,7 +12,7 @@ class Infection(Base):
 
     id = Column(String, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    incubation_days = Column(Integer, nullable=False)
+    incubation_date = Column(Date, nullable=False)
     detection_days = Column(Integer, nullable=False)
     contagion_days = Column(Integer, nullable=False)
     contagion_level = Column(Float, nullable=False)
@@ -24,7 +23,7 @@ def create_infection(payload: InfectionCreate):
         infection = Infection(
             id=str(uuid.uuid4()),
             name=payload.name,
-            incubation_days=payload.incubation_days,
+            incubation_date=payload.incubation_date,
             detection_days=payload.detection_days,
             contagion_days=payload.contagion_days,
             contagion_level=payload.contagion_level,
