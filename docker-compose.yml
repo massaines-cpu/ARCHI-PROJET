@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # -------------------- DB pour cases --------------------
+  db:
+    image: mysql:8.0
+    container_name: archi_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./cases/data/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./cases/data/test.sql:/docker-entrypoint-initdb.d/02-test.sql
+    networks:
+      - archi_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # -------------------- Cases microservice --------------------
+  cases-service:
+    build: ./cases      # chemin vers ton dossier cases
+    container_name: archi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - archi_network
+
+  # -------------------- Infections microservice --------------------
+  infections-service:
+    build: ./infections   # chemin vers ton dossier infections
+    container_name: infections_backend
+    ports:
+      - "8002:8002"
+    networks:
+      - archi_network
+
+  # -------------------- Gateway API --------------------
+  gateway:
+    build: ./gateway       # ton dossier API passerelle
+    container_name: api_gateway
+    ports:
+      - "8005:8005"
+    depends_on:
+      - cases-service
+      - infections-service
+    networks:
+      - archi_network
+
+volumes:
+  mysql_data:
+
+networks:
+  archi_network:
+    driver: bridge
