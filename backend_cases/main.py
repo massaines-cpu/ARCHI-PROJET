@@ -71,44 +71,64 @@ def create_case(case_data: CaseCreate):
         cursor.close()
 
 # ---------------- read a case ----------------
-@app.get("/case/{case_id}")
-def get_case(case_id: int):
+@app.get("/case")
+def get_cases():
     cursor = db_instance.get_cursor()
     try:
-        cursor.execute(
-            "SELECT id, id_infection, name, contamination_date, ST_AsText(frequented_places) FROM cases WHERE id=%s",
-            (case_id,)
-        )
-        result = cursor.fetchone()
-        if not result:
-            return json_response(
-                data=None,
-                message="Case not found",
-                error="No case with this ID"
-            )
-        case_dict = dict(zip(
-            ["id", "id_infection", "name", "contamination_date", "frequented_places"],
-            result
-        ))
-
-        if case_dict.get('contamination_date') and isinstance(case_dict['contamination_date'], datetime):
-            case_dict['contamination_date'] = case_dict['contamination_date'].strftime('%Y-%m-%d %H:%M:%S')
-
-        case_dict['frequented_places'] = parse_multipoint(case_dict['frequented_places'])
-
-        return json_response(
-            data=case_dict,
-            message="Success",
-            error=None
-        )
-    except Exception as e:
-        return json_response(
-            data=None,
-            message="Failed to fetch case",
-            error=str(e)
-        )
+        cursor.execute("SELECT id, id_infection, name, contamination_date, ST_AsText(frequented_places) FROM cases")
+        results = cursor.fetchall()
+        cases = []
+        for row in results:
+            case_dict = dict(zip(
+                ["id", "id_infection", "name", "contamination_date", "frequented_places"],
+                row
+            ))
+            case_dict['frequented_places'] = parse_multipoint(case_dict['frequented_places'])
+            if case_dict.get('contamination_date'):
+                case_dict['contamination_date'] = case_dict['contamination_date'].strftime('%Y-%m-%d %H:%M:%S')
+            cases.append(case_dict)
+        return json_response(data=cases, message="Success", error=None)
     finally:
         cursor.close()
+
+# @app.get("/case/{case_id}")
+# def get_case(case_id: int):
+#     cursor = db_instance.get_cursor()
+#     try:
+#         cursor.execute(
+#             "SELECT id, id_infection, name, contamination_date, ST_AsText(frequented_places) FROM cases WHERE id=%s",
+#             (case_id,)
+#         )
+#         result = cursor.fetchone()
+#         if not result:
+#             return json_response(
+#                 data=None,
+#                 message="Case not found",
+#                 error="No case with this ID"
+#             )
+#         case_dict = dict(zip(
+#             ["id", "id_infection", "name", "contamination_date", "frequented_places"],
+#             result
+#         ))
+#
+#         if case_dict.get('contamination_date') and isinstance(case_dict['contamination_date'], datetime):
+#             case_dict['contamination_date'] = case_dict['contamination_date'].strftime('%Y-%m-%d %H:%M:%S')
+#
+#         case_dict['frequented_places'] = parse_multipoint(case_dict['frequented_places'])
+#
+#         return json_response(
+#             data=case_dict,
+#             message="Success",
+#             error=None
+#         )
+#     except Exception as e:
+#         return json_response(
+#             data=None,
+#             message="Failed to fetch case",
+#             error=str(e)
+#         )
+#     finally:
+#         cursor.close()
 
 # ---------------- update a case ----------------
 @app.put("/case/{case_id}")
