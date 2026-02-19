@@ -1,46 +1,49 @@
 import { useState, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
-const FilterForMap = ({ cases, setCases }) => {
+const FilterForMap = ({ cases = [], setCases, infections = [] }) => {
   const [open, setOpen] = useState(false);
   const [infectionFilter, setInfectionFilter] = useState('');
+  const [caseFilter, setCaseFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
-  const [zoneFilter, setZoneFilter] = useState('');
 
-  const zones = useMemo(() => {
-    const labels = cases.flatMap((c) => c.locations.map((l) => l.label));
-    return [...new Set(labels)];
+  const infectionOptions = useMemo(() => {
+    const ids = [...new Set(cases.map((c) => c.id_infection))];
+    return ids.map((id) => ({
+      id,
+      name: infections.find((inf) => String(inf.id) === String(id))?.name ?? `Infection ${id}`,
+    }));
+  }, [cases, infections]);
+
+  const caseNames = useMemo(() => {
+    return [...new Set(cases.map((c) => c.name))].sort();
   }, [cases]);
 
   useEffect(() => {
     let filtered = cases;
 
-    if (infectionFilter.trim()) {
-      filtered = filtered.filter((c) =>
-        c.infectionName.toLowerCase().includes(infectionFilter.toLowerCase())
-      );
+    if (infectionFilter) {
+      filtered = filtered.filter((c) => c.id_infection === Number(infectionFilter));
+    }
+
+    if (caseFilter) {
+      filtered = filtered.filter((c) => c.name === caseFilter);
     }
 
     if (dateFilter) {
-      filtered = filtered.filter((c) => c.detectionDate === dateFilter);
-    }
-
-    if (zoneFilter) {
-      filtered = filtered.filter((c) =>
-        c.locations.some((l) => l.label === zoneFilter)
-      );
+      filtered = filtered.filter((c) => c.contamination_date?.startsWith(dateFilter));
     }
 
     setCases(filtered);
-  }, [infectionFilter, dateFilter, zoneFilter, cases, setCases]);
+  }, [infectionFilter, caseFilter, dateFilter, cases, setCases]);
 
   const handleReset = () => {
     setInfectionFilter('');
+    setCaseFilter('');
     setDateFilter('');
-    setZoneFilter('');
   };
 
-  const hasActiveFilters = infectionFilter || dateFilter || zoneFilter;
+  const hasActiveFilters = infectionFilter || caseFilter || dateFilter;
 
   return (
     <Wrapper>
@@ -59,7 +62,20 @@ const FilterForMap = ({ cases, setCases }) => {
               onChange={(e) => setInfectionFilter(e.target.value)}
             >
               <option value="">Toutes</option>
-              {Array.from(new Set(cases.map((c) => c.infectionName))).map((name) => (
+              {infectionOptions.map(({ id, name }) => (
+                <option key={id} value={id}>{name}</option>
+              ))}
+            </Select>
+          </Field>
+
+          <Field>
+            <FieldLabel>Cas</FieldLabel>
+            <Select
+              value={caseFilter}
+              onChange={(e) => setCaseFilter(e.target.value)}
+            >
+              <option value="">Tous</option>
+              {caseNames.map((name) => (
                 <option key={name} value={name}>{name}</option>
               ))}
             </Select>
@@ -72,19 +88,6 @@ const FilterForMap = ({ cases, setCases }) => {
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
             />
-          </Field>
-
-          <Field>
-            <FieldLabel>Zone</FieldLabel>
-            <Select
-              value={zoneFilter}
-              onChange={(e) => setZoneFilter(e.target.value)}
-            >
-              <option value="">Toutes</option>
-              {zones.map((z) => (
-                <option key={z} value={z}>{z}</option>
-              ))}
-            </Select>
           </Field>
 
           {hasActiveFilters && (

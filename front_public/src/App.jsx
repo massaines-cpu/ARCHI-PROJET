@@ -1,54 +1,48 @@
-import "./App.css";
-import { useEffect, useState } from "react"; 
-// MODIFIÉ : ajout des hooks React pour gérer l’état et les appels API
-
-import Map from "./components/map";
-import HeaderTop from "./components/header";
-import styled from "styled-components";
-import ListOfCases from "./components/listOfCases";
+import { useEffect, useState } from 'react';
+import './App.css'
+import Map from './components/map';
+import HeaderTop from './components/header';
+import styled from 'styled-components';
+import ListOfCases from './components/listOfCases';
+import { getCases, getInfections } from './api/api';
+import InfoBar from './components/infoBar';
 
 function App() {
-
-  const [cases, setCases] = useState([]); 
-  // MODIFIÉ : remplacement des données statiques par un state dynamique
-  // afin de stocker les données provenant du backend
+  const [cases, setCases] = useState([]);
+  const [infections, setInfections] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8002/infection")
-      // MODIFIÉ : appel du backend infections au lieu des données mockées
+    getCases()
+      .then((data) => setCases(data.data))
+      .catch((err) => setError(err.message));
+  }, []);
 
-      .then((r) => r.json())
-      .then((infections) => {
-
-        const mapped = infections.map((inf, idx) => ({
-          id: String(inf.id ?? idx + 1),
-          infectionName: inf.name ?? "Unknown",
-          detectionDate: new Date().toISOString().slice(0, 10),
-          locations: [],
-        }));
-        // MODIFIÉ : mapping des données backend vers la structure attendue
-        // par le frontend (cases avec infectionName, detectionDate, locations)
-
-        setCases(mapped);
-        // MODIFIÉ : mise à jour du state avec les données récupérées
+  useEffect(() => {
+    getInfections()
+      .then((data) => {
+        setInfections(data);
+        console.log("Infections fetched in App:", data);
       })
-      .catch(console.error);
+      .catch((err) => setError(err.message));
+  }, []);
 
-  }, []); 
-  // MODIFIÉ : useEffect exécuté une seule fois au chargement du composant
+  useEffect(() => {
+    console.log("Infections in App:", infections);
+  }, [infections]);
 
+  if (error) return <p>Erreur : {error}</p>;
 
   return (
     <Container>
-      <HeaderTop />
-      <ListOfCases cases={cases} /> 
-      {/* MODIFIÉ : utilisation des données dynamiques au lieu des données mock */}
-
-      <Map cases={cases} /> 
-      {/* MODIFIÉ : la carte reçoit aussi les données venant du backend */}
+      <div>
+        <HeaderTop />
+        <InfoBar cases={cases} infections={infections} />
+      </div>
+      <Map cases={cases} infections={infections} />
+      <ListOfCases cases={cases} infections={infections} />
     </Container>
   );
-
 }
 
 export default App;
@@ -60,3 +54,4 @@ const Container = styled.div`
   gap: 120px;
   margin-bottom: 100px;
 `;
+

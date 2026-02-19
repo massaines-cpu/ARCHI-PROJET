@@ -3,3 +3,42 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper {
+  background: #12121f;
+  color: #e8e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.leaflet-popup-tip {
+  background: #12121f;
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+}
+
+/* Attribution en bas de carte */
+.leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 9px;
+}
+
+.leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Boutons zoom */
+.leaflet-control-zoom a {
+  background: rgba(20, 20, 30, 0.85) !important;
+  color: #e0e0e0 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(40, 40, 60, 0.95) !important;
+}
