@@ -6,11 +6,13 @@ import styled from 'styled-components';
 import ListOfCases from './components/listOfCases';
 import { getCases, getInfections } from './api/api';
 import InfoBar from './components/infoBar';
+import NotificationsSubscribe from './components/notificationsSubscribe';
 
 function App() {
   const [cases, setCases] = useState([]);
   const [infections, setInfections] = useState([]);
   const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     getCases()
@@ -36,9 +38,10 @@ function App() {
   return (
     <Container>
       <div>
-        <HeaderTop />
+        <HeaderTop onSubscribeClick={() => setModalOpen(true)} />
         <InfoBar cases={cases} infections={infections} />
       </div>
+      <NotificationsSubscribe open={modalOpen} onClose={() => setModalOpen(false)} />
       <Map cases={cases} infections={infections} />
       <ListOfCases cases={cases} infections={infections} />
     </Container>

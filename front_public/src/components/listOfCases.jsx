@@ -1,97 +1,95 @@
-import { use, useEffect, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
+import { List, RotateCcw } from "lucide-react";
+import { getContagionLevelColor } from "../tools/contagionLevel";
 
 const ListOfCases = ({ cases = [], infections = [] }) => {
   const [filterName, setFilterName] = useState("");
   const [filterDate, setFilterDate] = useState("");
 
-  useEffect(() => {
-    console.log("Infections in ListOfCases: ", infections);
-  }, [infections]);
-
-  const casesWithInfection = cases.map((c) => ({
-    ...c,
-    infectionName:
-      infections.find((inf) => String(inf.id) === String(c.id_infection))?.name ?? c.id_infection,
-  }));
+  const casesWithInfection = cases.map((c) => {
+    const infection = infections.find((inf) => String(inf.id) === String(c.id_infection));
+    return {
+      ...c,
+      infectionName: infection?.name ?? c.id_infection,
+      contagionLevel: infection?.contagion_level,
+    };
+  });
 
   const uniqueInfections = [...new Set(casesWithInfection.map((c) => c.infectionName))];
 
-  console.log("Unique infections : ", uniqueInfections);
   const filtered = casesWithInfection.filter((c) => {
     const matchName = filterName ? c.infectionName === filterName : true;
     const matchDate = filterDate ? c.contamination_date === filterDate : true;
     return matchName && matchDate;
   });
 
-  useState(() => {
-    console.log("Infections listOfCases: ", infections);
-  }, []);
-
+  const hasFilters = filterName || filterDate;
 
   return (
     <MainContainer>
-      <h2>Liste des cas</h2>
-
-      <Filters>
-        <label>
-          Infection
-          <select value={filterName} onChange={(e) => setFilterName(e.target.value)}>
-            <option value="">
-              Toutes
-            </option>
-            {uniqueInfections.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          Date de détection
-          <input
-            type="date"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-          />
-        </label>
-
-        <ResetButton onClick={() => { setFilterName(""); setFilterDate(""); }}>
-          Réinitialiser
-        </ResetButton>
-      </Filters>
-
-      <Table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Infection</th>
-            <th>Date de détection</th>
-            <th>Lieux</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.length === 0 ? (
-            <tr>
-              <td colSpan={5} style={{ textAlign: "center", color: "#888" }}>
-                Aucun résultat
-              </td>
-            </tr>
-          ) : (
-            filtered.map((c) => (
-              <tr key={c.id}>
-                <td>{c.id}</td>
-                <td>{c.name}</td>
-                <td>{c.infectionName}</td>
-                <td>{c.contamination_date}</td>
-                <td>{c.frequented_place}</td>
-              </tr>
-            ))
+      <TopRow>
+        <TitleRow>
+          <Title>Liste des cas</Title>
+          <Count>{filtered.length}</Count>
+        </TitleRow>
+        <Filters>
+          <FilterLabel>
+            <LabelText>Infection</LabelText>
+            <Select value={filterName} onChange={(e) => setFilterName(e.target.value)}>
+              <option value="">Toutes</option>
+              {uniqueInfections.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </Select>
+          </FilterLabel>
+          <FilterLabel>
+            <LabelText>Date</LabelText>
+            <DateInput
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+            />
+          </FilterLabel>
+          {hasFilters && (
+            <ResetBtn onClick={() => { setFilterName(""); setFilterDate(""); }}>
+              <RotateCcw size={13} />
+              Réinitialiser
+            </ResetBtn>
           )}
-        </tbody>
-      </Table>
+        </Filters>
+      </TopRow>
+
+      <LigneSeparation />
+
+      <TableWrapper>
+        <Table>
+          <thead>
+            <tr>
+              <Th>#</Th>
+              <Th>Nom</Th>
+              <Th>Infection</Th>
+              <Th>Date de contamination</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr>
+                <EmptyCell colSpan={4}>Aucun résultat</EmptyCell>
+              </tr>
+            ) : (
+              filtered.map((c, i) => (
+                <Row key={c.id}>
+                  <Td $dim>{i + 1}</Td>
+                  <Td>{c.name}</Td>
+                  <Td><InfectionBadge $color={getContagionLevelColor(c.contagionLevel)}>{c.infectionName}</InfectionBadge></Td>
+                  <Td $dim>{c.contamination_date}</Td>
+                </Row>
+              ))
+            )}
+          </tbody>
+        </Table>
+      </TableWrapper>
     </MainContainer>
   );
 };
@@ -99,75 +97,171 @@ const ListOfCases = ({ cases = [], infections = [] }) => {
 export default ListOfCases;
 
 const MainContainer = styled.div`
-    width: 100%;
-    max-width: 900px;
-    padding: 0 16px;
-  `;
+  width: 80%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px 28px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+`;
+
+const TopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+`;
+
+const TitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  svg { color: #3b82f6; flex-shrink: 0; }
+`;
+
+const Title = styled.h2`
+  font-family: 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+`;
+
+const Count = styled.span`
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 20px;
+  padding: 2px 8px;
+`;
 
 const Filters = styled.div`
-    display: flex;
-    gap: 16px;
-    align-items: flex-end;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
 
-    label {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
+const FilterLabel = styled.label`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
 
-    select,
-    input[type="date"] {
-      padding: 6px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.9rem;
-    }
-  `;
+const LabelText = styled.span`
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.35);
+`;
 
-const ResetButton = styled.button`
-    padding: 6px 14px;
-    border: none;
-    border-radius: 6px;
-    background: #e0e0e0;
-    cursor: pointer;
-    font-size: 0.85rem;
+const baseInput = `
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #e8e8f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  &:focus { border-color: rgba(59, 130, 246, 0.5); }
+`;
 
-    &:hover {
-      background: #c8c8c8;
-    }
-  `;
+const Select = styled.select`
+  ${baseInput}
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.3)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  padding-right: 28px;
+  option { background: #0f0f1a; color: #e8e8f0; }
+`;
+
+const DateInput = styled.input`
+  ${baseInput}
+  &[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+`;
+
+const ResetBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  &:hover { border-color: rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.7); }
+`;
+
+const LigneSeparation = styled.div`
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 18px 0;
+`;
+
+const TableWrapper = styled.div`
+  overflow-x: auto;
+`;
 
 const Table = styled.table`
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+`;
 
-    th, td {
-      padding: 10px 14px;
-      border: 1px solid #4a4a5a;
-      text-align: left;
-      color: #e8e8f0;
-    }
+const Th = styled.th`
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+`;
 
-    th {
-      background: #2a2a3d;
-      font-weight: 600;
-      color: #ffffff;
-    }
+const Row = styled.tr`
+  transition: background 0.15s;
+  &:hover td { background: rgba(255, 255, 255, 0.03); }
+`;
 
-    tr td {
-      background: #1a1a2e;
-    }
+const Td = styled.td`
+  padding: 11px 14px;
+  color: ${({ $dim }) => $dim ? "rgba(255,255,255,0.4)" : "#e8e8f0"};
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+`;
 
-    tr:nth-child(even) td {
-      background: #16213e;
-    }
+const InfectionBadge = styled.span`
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: ${({ $color }) => $color ? `${$color}1a` : "rgba(167,139,250,0.1)"};
+  border: 1px solid ${({ $color }) => $color ? `${$color}40` : "rgba(167,139,250,0.25)"};
+  color: ${({ $color }) => $color ?? "#a78bfa"};
+`;
 
-    tr:hover td {
-      background: #0f3460;
-    }
-  `;
+const EmptyCell = styled.td`
+  padding: 32px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+`;

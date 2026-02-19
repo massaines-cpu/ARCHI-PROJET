@@ -39,6 +39,7 @@ export async function addCase(caseData) {
   }
 }
 
+<<<<<<< HEAD
 //import axios from "axios";
 //
 //const API_CASES_URL = "http://127.0.0.1:8000";
@@ -61,3 +62,9 @@ export async function addCase(caseData) {
 //  const response = await axios.post(`${API_CASES_URL}/case`, caseData);
 //  return response.data;
 //}
+=======
+export async function deleteCase(caseId) {
+  const response = await axios.delete(`${API_CASES_URL}/case/${caseId}`);
+  return response.data;
+}
+>>>>>>> 675c94f (update)

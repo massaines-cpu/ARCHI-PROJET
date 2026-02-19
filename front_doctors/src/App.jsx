@@ -45,7 +45,11 @@ function App() {
         onCaseAdded={() => getCases().then((data) => setCases(data.data)).catch(() => {})}
       />
       <Map cases={cases} infections={infections} />
-      <ListOfCases cases={cases} infections={infections} />
+      <ListOfCases
+        cases={cases}
+        infections={infections}
+        onCaseDeleted={() => getCases().then((data) => setCases(data.data)).catch(() => {})}
+      />
     </Container>
   );
 }

@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 import { Bell } from 'lucide-react';
 
-function HeaderTop() {
+function HeaderTop({ onSubscribeClick }) {
   return (
     <Container>
       <p>Alert<span>Infecti</span><img src="/corona-virus.png" alt="Logo infection" style={{ width: 30, height: 30 }} /><span>n</span></p>
-      <SubscribeButton>
+      <SubscribeButton onClick={onSubscribeClick}>
         <Bell size={15} strokeWidth={2} />
         S'abonner aux alertes
       </SubscribeButton>

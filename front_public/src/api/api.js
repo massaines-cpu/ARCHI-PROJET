@@ -43,3 +43,5 @@ export async function getInfections() {
     return response.data;
   }
 }
+
+
