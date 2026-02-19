@@ -1,10 +1,8 @@
 fastapi
+fastapi
 uvicorn[standard]
-
-sqlalchemy
-psycopg[binary]
-
+sqlalchemy==2.0.23
+psycopg2-binary
 python-dotenv
-
 pytest
 httpx

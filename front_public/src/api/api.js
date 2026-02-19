@@ -23,10 +23,10 @@ const API_INFECTIONS_URL = "http://127.0.0.1:8002";
 export async function getCases() {
   try {
     const response = await axios.get(`${API_PASSERELLE_URL}/cases`);
-    console.log("Cases via passerelle");
+    console.log("cases via passerelle");
     return response.data;
   } catch {
-    console.warn("Passerelle down, fallback direct cases");
+    console.warn("passerelle down, fallback direct cases");
     const response = await axios.get(`${API_CASES_URL}/cases`);
     return response.data;
   }
@@ -35,10 +35,10 @@ export async function getCases() {
 export async function getInfections() {
   try {
     const response = await axios.get(`${API_PASSERELLE_URL}/infection`);
-    console.log("Infections via passerelle");
+    console.log("infections via passerelle");
     return response.data;
   } catch {
-    console.warn("Passerelle down, fallback direct infections");
+    console.warn("passerelle down, fallback direct infections");
     const response = await axios.get(`${API_INFECTIONS_URL}/infection`);
     return response.data;
   }

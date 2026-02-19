@@ -28,7 +28,7 @@ def list_all(q: str | None = None, limit: int = 50, offset: int = 0):
 
 
 @router.get("/{infection_id}", response_model=InfectionOut)
-def get_one(infection_id: str):
+def get_one(infection_id: int):
     infection = get_infection(infection_id)
     if infection is None:
         raise HTTPException(status_code=404, detail="Infection not found")
@@ -36,7 +36,7 @@ def get_one(infection_id: str):
 
 
 @router.put("/{infection_id}", response_model=InfectionOut)
-def update_one(infection_id: str, payload: InfectionUpdate):
+def update_one(infection_id: int, payload: InfectionUpdate):
     updated = update_infection(infection_id, payload)
     if updated is None:
         raise HTTPException(status_code=404, detail="Infection not found")
@@ -46,7 +46,7 @@ def update_one(infection_id: str, payload: InfectionUpdate):
 
 
 @router.delete("/{infection_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_one(infection_id: str):
+def delete_one(infection_id: int):
     ok = delete_infection(infection_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Infection not found")

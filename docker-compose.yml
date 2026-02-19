@@ -21,7 +21,7 @@ services:
     ports:
       - "8002:8002"
     environment:
-      DATABASE_URL: "postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@infections-db:5432/${DB_NAME}"
+        DATABASE_URL: "postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@infections-db:5432/${DB_NAME}"
     depends_on:
       - infections-db
     networks:
