@@ -10,8 +10,8 @@ from models import InfectionCreate, InfectionUpdate
 class Infection(Base):
     __tablename__ = "infections"
 
-    id = Column(String, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)  # <- important
+    name = Column(String(120), unique=True, nullable=False)
     incubation_days = Column(Integer, nullable=False)
     detection_date = Column(Date, nullable=False)
     contagion_days = Column(Integer, nullable=False)
@@ -21,25 +21,19 @@ def create_infection(payload: InfectionCreate):
     db: Session = SessionLocal()
     try:
         infection = Infection(
-            id=str(uuid.uuid4()),
             name=payload.name,
             incubation_days=payload.incubation_days,
             detection_date=payload.detection_date,
             contagion_days=payload.contagion_days,
-            contagion_level=payload.contagion_level,
+            contagion_level=payload.contagion_level
         )
         db.add(infection)
-        try:
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            # name already exists (unique constraint)
-            return None
-
+        db.commit()
         db.refresh(infection)
         return infection
     finally:
         db.close()
+
 
 def list_infections(q: str | None = None, limit: int = 50, offset: int = 0):
     db: Session = SessionLocal()
@@ -51,7 +45,7 @@ def list_infections(q: str | None = None, limit: int = 50, offset: int = 0):
     finally:
         db.close()
 
-def get_infection(infection_id: str):
+def get_infection(infection_id: int):
     db: Session = SessionLocal()
     try:
         return db.query(Infection).filter(Infection.id == infection_id).first()
@@ -59,7 +53,7 @@ def get_infection(infection_id: str):
         db.close()
 
 
-def update_infection(infection_id: str, payload: InfectionUpdate):
+def update_infection(infection_id: int, payload: InfectionUpdate):
     db: Session = SessionLocal()
     try:
         infection = db.query(Infection).filter(Infection.id == infection_id).first()
@@ -82,7 +76,7 @@ def update_infection(infection_id: str, payload: InfectionUpdate):
         db.close()
 
 
-def delete_infection(infection_id: str):
+def delete_infection(infection_id: int):
     db: Session = SessionLocal()
     try:
         infection = db.query(Infection).filter(Infection.id == infection_id).first()

@@ -6,15 +6,15 @@ from datetime import date
 BASE_URL = "http://127.0.0.1:8002/infection"
 BASE_URL2 = "http://127.0.0.1:8000/case"
 
-# def get_loc():
-#     try:
-#         res = requests.get(BASE_URL2)
-#         if res.status_code == 200:
-#             return res.json()
-#         return []
-#     except Exception as e:
-#         st.error(f"erreur connexion API (get): {e}")
-#         return []
+def get_loc():
+    try:
+        res = requests.get(BASE_URL2)
+        if res.status_code == 200:
+            return res.json()
+        return []
+    except Exception as e:
+        st.error(f"erreur connexion API (get): {e}")
+        return []
 
 def get_infections():
     try:
@@ -55,7 +55,7 @@ def update_infection(id_infection, data):
 st.title('inscription de nouvelles infections')
 
 donnees_infections = get_infections()
-# st.write(donnees_infections)
+st.write(donnees_infections)
 if donnees_infections:
     df = pd.DataFrame(donnees_infections)
     st.table(df)
@@ -121,41 +121,41 @@ if infections_bdd:
             st.rerun()
 
 #map
-# cases = get_loc()
-# st.write(cases)
-#
-# if cases and "data" in cases:
-#     data_rows = []
-#     for case in cases["data"]:
-#         frequented = case.get("frequented_places")
-#         infection_name = case.get("name")
-#         contamination_date = case.get("contamination_date")
-#         case_id = case.get("id")
-#
-#         if frequented:
-#             for point in frequented:
-#                 data_rows.append({
-#                     "id": case_id,
-#                     "lat": point[1],
-#                     "lon": point[0],
-#                     "infection": infection_name,
-#                     "contamination_date": contamination_date
-#                 })
-#
-#     if data_rows:
-#         df_map = pd.DataFrame(data_rows)
-#         couleurs = {
-#             "grippe": "#FF0000",
-#             "rhume": "#00FF00",
-#             "covid": "#0000FF"
-#         }
-#         df_map["color"] = df_map["infection"].apply(lambda i: couleurs.get(i, "#888888"))
-#
-#         st.map(df_map, color="color")
-#     else:
-#         st.info("Aucune localisation disponible pour les cas.")
-# else:
-#     st.warning("Impossible de récupérer les cas depuis l'API.")
+cases = get_loc()
+st.write(cases)
+
+if cases and "data" in cases:
+    data_rows = []
+    for case in cases["data"]:
+        frequented = case.get("frequented_places")
+        infection_name = case.get("name")
+        contamination_date = case.get("contamination_date")
+        case_id = case.get("id")
+
+        if frequented:
+            for point in frequented:
+                data_rows.append({
+                    "id": case_id,
+                    "lat": point[1],
+                    "lon": point[0],
+                    "infection": infection_name,
+                    "contamination_date": contamination_date
+                })
+
+    if data_rows:
+        df_map = pd.DataFrame(data_rows)
+        couleurs = {
+            "grippe": "#FF0000",
+            "rhume": "#00FF00",
+            "covid": "#0000FF"
+        }
+        df_map["color"] = df_map["infection"].apply(lambda i: couleurs.get(i, "#888888"))
+
+        st.map(df_map, color="color")
+    else:
+        st.info("Aucune localisation disponible pour les cas.")
+else:
+    st.warning("Impossible de récupérer les cas depuis l'API.")
 
 
 

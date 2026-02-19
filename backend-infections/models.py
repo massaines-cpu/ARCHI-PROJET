@@ -24,5 +24,5 @@ class InfectionUpdate(BaseModel):
 
 
 class InfectionOut(InfectionBase):
-    id: str
+    id: int
     model_config = ConfigDict(from_attributes=True)
