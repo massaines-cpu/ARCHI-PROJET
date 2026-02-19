@@ -3,3 +3,5 @@ uvicorn[standard]
 mysql-connector-python
 pydantic
 python-dotenv
+sqlalchemy
+psycopg2-binary

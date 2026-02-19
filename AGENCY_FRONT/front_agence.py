@@ -1,58 +1,95 @@
+#front agency
 import streamlit as st
 import pandas as pd
 import requests
 from datetime import date
 
-BASE_URL = "http://127.0.0.1:8002/infection"
-BASE_URL2 = "http://127.0.0.1:8000/cases"
+API_PASSERELLE = "http://127.0.0.1:8005"
+API_INFECTION = "http://127.0.0.1:8002"  # ← le fallback appelle juste la racine /
+API_CAS = "http://127.0.0.1:8000"        # ← pareil
 
 def get_cases():
     try:
-        res = requests.get(BASE_URL2)
-        if res.status_code == 200:
+        res = requests.get(f"{API_PASSERELLE}/cases", timeout=2)
+        res.raise_for_status()
+        return res.json().get("data", [])
+    except Exception:
+        try:
+            res = requests.get(f"{API_CAS}/cases", timeout=2)  # ← ajoute /cases
+            res.raise_for_status()
             return res.json().get("data", [])
-        st.error(f"Erreur API cases: status {res.status_code}")
-        return []
-    except Exception as e:
-        st.error(f"Erreur connexion API cases: {e}")
-        return []
-
+        except Exception as e2:
+            st.error(f"Impossible de récupérer les cas: {e2}")
+            return []
 
 def get_infections():
     try:
-        res = requests.get(BASE_URL)
-        if res.status_code == 200:
+        res = requests.get(f"{API_PASSERELLE}/infection", timeout=2)
+        res.raise_for_status()
+        return res.json()
+    except Exception:
+        try:
+            res = requests.get(f"{API_INFECTION}/infection", timeout=2)  # ← ajoute /infection
+            res.raise_for_status()
             return res.json()
-        return []
-    except Exception as e:
-        st.error(f"erreur connexion API (get): {e}")
-        return []
+        except Exception as e2:
+            st.error(f"Impossible de récupérer les infections: {e2}")
+            return []
 
 def post_infection(data):
     try:
-        res = requests.post(BASE_URL, json=data)
+        res = requests.post(f"{API_PASSERELLE}/infection", json=data)
         if res.status_code == 201:
-            st.success("infection envoyée à API")
+            st.success("Infection ajoutée via passerelle")
         elif res.status_code == 409:
-            st.error("ce nom d'infection existe déjà.")
-    except Exception as e:
-        st.error(f"erreur API (post): {e}")
-
-def delete_infection(id_infection):
-    try:
-        res = requests.delete(f"{BASE_URL}/{id_infection}")
-        if res.status_code == 204:
-            st.warning("infection supprimée")
-    except Exception as e:
-        st.error(f"erreur API (delete): {e}")
+            st.error("Ce nom d'infection existe déjà")
+        else:
+            st.error(f"Erreur API passerelle POST: {res.status_code}")
+    except Exception:
+        try:
+            res = requests.post(f"{API_INFECTION}/infection", json=data)  # ← /infection ajouté
+            if res.status_code == 201:
+                st.success("Infection ajoutée directement")
+            elif res.status_code == 409:
+                st.error("Ce nom d'infection existe déjà")
+            else:
+                st.error(f"Erreur API directe POST: {res.status_code}")
+        except Exception as e2:
+            st.error(f"Impossible d'ajouter l'infection: {e2}")
 
 def update_infection(id_infection, data):
     try:
-        res = requests.put(f"{BASE_URL}/{id_infection}", json=data)
+        res = requests.put(f"{API_PASSERELLE}/infection/{id_infection}", json=data)
         if res.status_code == 200:
-            st.success("mise à jour réussie")
-    except Exception as e:
-        st.error(f"erreur API (put): {e}")
+            st.success("Infection mise à jour via passerelle")
+        else:
+            st.error(f"Erreur API passerelle PUT: {res.status_code}")
+    except Exception:
+        try:
+            res = requests.put(f"{API_INFECTION}/infection/{id_infection}", json=data)  # ← /infection ajouté
+            if res.status_code == 200:
+                st.success("Infection mise à jour directement")
+            else:
+                st.error(f"Erreur API directe PUT: {res.status_code}")
+        except Exception as e2:
+            st.error(f"Impossible de mettre à jour l'infection: {e2}")
+
+def delete_infection(id_infection):
+    try:
+        res = requests.delete(f"{API_PASSERELLE}/infection/{id_infection}")
+        if res.status_code == 204:
+            st.warning("Infection supprimée via passerelle")
+        else:
+            st.error(f"Erreur API passerelle DELETE: {res.status_code}")
+    except Exception:
+        try:
+            res = requests.delete(f"{API_INFECTION}/infection/{id_infection}")  # ← /infection ajouté
+            if res.status_code == 204:
+                st.warning("Infection supprimée directement")
+            else:
+                st.error(f"Erreur API directe DELETE: {res.status_code}")
+        except Exception as e2:
+            st.error(f"Impossible de supprimer l'infection: {e2}")
 
 st.title('inscription de nouvelles infections')
 
@@ -178,18 +215,4 @@ if cases:
         st.info("Aucune localisation disponible pour les cas.")
 else:
     st.warning("Impossible de récupérer les cas depuis l'API.")
-# data = pd.DataFrame([
-#     [1, 43.6033, 1.4397, 'grippe', '10/05/2000'],
-#     [2, 43.6000, 1.5000, 'rhume', '23/01/1970'],
-#     [3, 43.5800, 1.4500, 'rhume', '02/01/1980']
-# ], columns=["id", "lat", "lon", "infection", "contamination_date"])
-#
-# couleurs = {
-#     "grippe": "#FF0000",
-#     "rhume": "#00FF00"
-# }
-# df = pd.DataFrame(data)
-#
-# df["color"] = df["infection"].apply(lambda i: couleurs[i])
-# st.map(df, color='color')
 

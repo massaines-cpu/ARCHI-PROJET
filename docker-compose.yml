@@ -1,7 +1,43 @@
-version: '3.8'
-
 services:
-  # -------------------- DB pour cases --------------------
+  backend_cases:
+    build: ./backend_cases
+    container_name: archi_backend
+    ports:
+      - "8000:8002"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      - db
+    networks:
+      - archi_network
+
+  backend_infections:
+    build: ./backend-infections
+    container_name: infections-service
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: "postgresql+psycopg://${DB_USER}:${DB_PASSWORD}@infections-db:5432/${DB_NAME}"
+    depends_on:
+      - infections-db
+    networks:
+      - archi_network
+
+  api_passerelle:
+    build: ./api-passerelle
+    container_name: api-passerelle
+    ports:
+      - "8005:8005"
+    depends_on:
+      - backend_cases
+      - backend_infections
+    networks:
+      - archi_network
+
   db:
     image: mysql:8.0
     container_name: archi_mysql
@@ -14,57 +50,30 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./cases/data/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./cases/data/test.sql:/docker-entrypoint-initdb.d/02-test.sql
+      - ./backend_cases/data/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./backend_cases/data/test.sql:/docker-entrypoint-initdb.d/02-test.sql
     networks:
       - archi_network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
 
-  # -------------------- Cases microservice --------------------
-  cases-service:
-    build: ./cases      # chemin vers ton dossier cases
-    container_name: archi_backend
-    ports:
-      - "8000:8000"
+  infections-db:
+    image: postgres:15
+    container_name: infections-db
     environment:
-      DB_HOST: db
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - archi_network
-
-  # -------------------- Infections microservice --------------------
-  infections-service:
-    build: ./infections   # chemin vers ton dossier infections
-    container_name: infections_backend
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "8002:8002"
+      - "5433:5432"
+    volumes:
+      - infections_data:/var/lib/postgresql/data
+      - ./backend-infections/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./backend-infections/database/test_data.sql:/docker-entrypoint-initdb.d/02-test_data.sql
     networks:
       - archi_network
-
-  # -------------------- Gateway API --------------------
-  gateway:
-    build: ./gateway       # ton dossier API passerelle
-    container_name: api_gateway
-    ports:
-      - "8005:8005"
-    depends_on:
-      - cases-service
-      - infections-service
-    networks:
-      - archi_network
-
-volumes:
-  mysql_data:
 
 networks:
   archi_network:
     driver: bridge
+volumes:
+  mysql_data:
+  infections_data:

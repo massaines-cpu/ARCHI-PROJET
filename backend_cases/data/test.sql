@@ -1,4 +1,4 @@
-USE ARCHI;
+USE archi;
 INSERT INTO cases (id_infection, name, contamination_date, frequented_places) VALUES
 (4, 'Alice Durand',    '2024-02-01 09:00:00', ST_GeomFromText('MULTIPOINT((2.3522 48.8566),(2.3600 48.8600),(2.3700 48.8500))', 4326)),
     (5, 'Marc Petit',      '2024-02-03 15:30:00', ST_GeomFromText('MULTIPOINT((4.8350 45.7600),(4.8400 45.7550),(4.8500 45.7580))', 4326)),
