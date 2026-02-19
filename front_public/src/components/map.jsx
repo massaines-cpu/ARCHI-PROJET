@@ -1,71 +1,68 @@
-import { useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, CircleMarker, Popup, ZoomControl } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import styled from "styled-components";
 import MapPopup from "./mapPopup";
 import FilterForMap from "./filterForMap";
+import MapLegend from "./mapLegend";
+import { getContagionLevelColor } from "../tools/contagionLevel";
+
 
 export default function Map({ cases = [], infections = [] }) {
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const markersLayer = useRef(null);
   const [filteredCases, setFilteredCases] = useState(cases);
 
   useEffect(() => {
-    if (mapInstance.current) return;
-    const L = window.L;
-
-    mapInstance.current = L.map(mapRef.current, { zoomControl: false }).setView([46.603, 1.888], 6);
-
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      maxZoom: 19,
-    }).addTo(mapInstance.current);
-
-    L.control.zoom({ position: "bottomright" }).addTo(mapInstance.current);
-
-    markersLayer.current = L.layerGroup().addTo(mapInstance.current);
-
-    return () => {
-      mapInstance.current.remove();
-      mapInstance.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const L = window.L;
-    if (!markersLayer.current) return;
-
-    markersLayer.current.clearLayers();
-
-    filteredCases.forEach((c) => {
-      if (!c.frequented_places?.length) return;
-
-      c.frequented_places.forEach(([lng, lat]) => {
-        L.circleMarker([lat, lng], {
-          radius: 9,
-          fillColor: "#e74c3c",
-          color: "rgba(231, 76, 60, 0.35)",
-          weight: 8,
-          fillOpacity: 0.9,
-        })
-          .bindPopup(() => {
-            const container = document.createElement("div");
-            createRoot(container).render(
-              <MapPopup name={c.name} place={`${lat}, ${lng}`} date={c.contamination_date} />
-            );
-            return container;
-          })
-          .addTo(markersLayer.current);
-      });
-    });
-  }, [filteredCases]);
+    console.log("infec :", infections);
+  }, [infections]);
 
   return (
     <MapWrapper>
+      <MapLegend />
       <FilterWrapper>
         <FilterForMap cases={cases} setCases={setFilteredCases} infections={infections} />
       </FilterWrapper>
-      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+      <MapContainer
+        center={[46.603, 1.888]}
+        zoom={6}
+        zoomControl={false}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          maxZoom={19}
+        />
+        <ZoomControl position="bottomright" />
+        {filteredCases.map((c) => {
+          // Je recup infection qui correspond à l'id du cas et je recup la couleur de contagion pour cette infection
+          const infection = infections.find((inf) => String(inf.id) === String(c.id_infection));
+          const color = getContagionLevelColor(infection?.contagion_level);
+          
+          return c.frequented_places?.map(([lng, lat], i) => (
+            <CircleMarker
+              key={`${c.name}-${i}`}
+              center={[lat, lng]}
+              radius={9}
+              fillColor={color}
+              color={color}
+              weight={8}
+              fillOpacity={0.9}
+              opacity={0.35}
+            >
+              <Popup maxWidth={300}>
+                <MapPopup
+                  name={c.name}
+                  lat={lat}
+                  lng={lng}
+                  date={c.contamination_date}
+                  contagionLevel={infection?.contagion_level}
+                  infectionName={infection?.name}
+                />
+              </Popup>
+            </CircleMarker>
+          ));
+        })}
+      </MapContainer>
     </MapWrapper>
   );
 }

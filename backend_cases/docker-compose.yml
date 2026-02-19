@@ -13,8 +13,8 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./data/init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./data/test.sql:/docker-entrypoint-initdb.d/02-test.sql
+      - ./data/init.sql:/docker-entrypoint-initdb.d/01-init.sql:z
+      - ./data/test.sql:/docker-entrypoint-initdb.d/02-test.sql:z
     networks:
       - archi_network
     healthcheck:
