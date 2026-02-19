@@ -4,11 +4,11 @@ import { Bell } from 'lucide-react';
 function HeaderTop() {
   return (
     <Container>
-        <p>Alert<span>Infection</span></p>
-        <SubscribeButton>
-          <Bell size={15} strokeWidth={2} />
-          S'abonner aux alertes
-        </SubscribeButton>
+      <p>Alert<span>Infecti</span><img src="/corona-virus.png" alt="Logo infection" style={{ width: 30, height: 30 }} /><span>n</span></p>
+      <SubscribeButton>
+        <Bell size={15} strokeWidth={2} />
+        S'abonner aux alertes
+      </SubscribeButton>
     </Container>
   )
 }
@@ -24,6 +24,8 @@ const Container = styled.header`
   padding: 20px;
 
   p {
+    display: flex;
+    align-items: center;
     margin: 0;
     font-size: 24px;
     font-family: 'Sora', sans-serif;
@@ -34,6 +36,10 @@ const Container = styled.header`
   span {
     color: #e74c3c;
   }
+`;
+
+const headerTitle = styled.div`
+  display: flex;
 
 `;
 

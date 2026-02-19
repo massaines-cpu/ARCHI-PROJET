@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import ListOfCases from './components/listOfCases';
 import { getCases, getInfections } from './api/api';
 import InfoBar from './components/infoBar';
+import AddCaseForm from './components/addCaseForm';
 
 function App() {
   const [cases, setCases] = useState([]);
@@ -39,6 +40,10 @@ function App() {
         <HeaderTop />
         <InfoBar cases={cases} infections={infections} />
       </div>
+      <AddCaseForm
+        infections={infections}
+        onCaseAdded={() => getCases().then((data) => setCases(data.data)).catch(() => {})}
+      />
       <Map cases={cases} infections={infections} />
       <ListOfCases cases={cases} infections={infections} />
     </Container>
