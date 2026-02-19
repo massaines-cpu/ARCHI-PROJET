@@ -71,7 +71,7 @@ def create_case(case_data: CaseCreate):
         cursor.close()
 
 # ---------------- read a case ----------------
-@app.get("/case")
+@app.get("/cases")
 def get_cases():
     cursor = db_instance.get_cursor()
     try:

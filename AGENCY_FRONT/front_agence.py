@@ -4,7 +4,7 @@ import requests
 from datetime import date
 
 BASE_URL = "http://127.0.0.1:8002/infection"
-BASE_URL2 = "http://127.0.0.1:8000/case"
+BASE_URL2 = "http://127.0.0.1:8000/cases"
 
 def get_cases():
     try:
